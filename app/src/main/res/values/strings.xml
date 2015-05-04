@@ -5,8 +5,9 @@
 
     <string name="glass_voice_trigger">Open the fridge</string>
 
-    <string name="fridge_opening">Opening the fridge</string>
+    <string name="fridge_opening">Opening the fridge&#8230;</string>
     <string name="fridge_open_ok">The fridge is open</string>
     <string name="fridge_open_error">Error opening the fridge: </string>
 
+    <string name="balance_fetching">Fetching&#8230;</string>
 </resources>

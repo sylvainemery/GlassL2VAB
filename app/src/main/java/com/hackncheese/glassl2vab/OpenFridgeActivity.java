@@ -14,6 +14,9 @@ import com.hackncheese.glassl2vab.helper.DateHelper;
 import com.hackncheese.glassl2vab.helper.EncodeHelper;
 import com.hackncheese.glassl2vab.helper.NetHelper;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Hashtable;
 import java.util.Random;
 
@@ -48,6 +51,7 @@ public class OpenFridgeActivity extends Activity {
     private String mSalt;
     private String mSaltCrypted;
     private SendOpenDoorOrderTask mSendOpenDoorOrderTask;
+    private GetBalanceTask mGetBalanceTask;
 
     @Override
     protected void onCreate(Bundle bundle) {
@@ -73,6 +77,7 @@ public class OpenFridgeActivity extends Activity {
         mCardScroller.activate();
 
         openDoor();
+        getBalance();
     }
 
     @Override
@@ -90,6 +95,10 @@ public class OpenFridgeActivity extends Activity {
         if (mSendOpenDoorOrderTask != null) {
             mSendOpenDoorOrderTask.cancel(true); // true = force interruption
         }
+        // cancel the async task if it exists
+        if (mGetBalanceTask != null) {
+            mGetBalanceTask.cancel(true); // true = force interruption
+        }
         super.onPause();
     }
 
@@ -100,6 +109,15 @@ public class OpenFridgeActivity extends Activity {
         // try to open the door
         mSendOpenDoorOrderTask = new SendOpenDoorOrderTask();
         mSendOpenDoorOrderTask.execute();
+    }
+
+    private void getBalance() {
+        mTaskResult.put("balance", getString(R.string.balance_fetching));
+        // notify that the card UI must be redrawn
+        mCardAdapter.notifyDataSetChanged();
+        // Get the balance from the API
+        mGetBalanceTask = new GetBalanceTask();
+        mGetBalanceTask.execute();
     }
 
     private String getSecuredHeader(String email, String saltCrypted) {
@@ -147,6 +165,53 @@ public class OpenFridgeActivity extends Activity {
                 // play an error sound
                 resultSound = Sounds.ERROR;
                 mTaskResult.put("result", getString(R.string.fridge_open_error) + result);
+            }
+
+            // notify that the card UI must be redrawn
+            mCardAdapter.notifyDataSetChanged();
+
+            // play a sound
+            AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            am.playSoundEffect(resultSound);
+
+        }
+    }
+
+    /**
+     * an AsyncTask that will call the open door API URL
+     */
+    private class GetBalanceTask extends AsyncTask<Void, Void, String> {
+        @Override
+        protected String doInBackground(Void... p) {
+            Hashtable<String, String> headers = new Hashtable<>();
+            headers.put("x-l2v-wsse", getSecuredHeader(mEmail, mSaltCrypted));
+
+            return NetHelper.getDataFromUrl(getString(R.string.url_get_account_info), headers, "GET");
+        }
+
+        protected void onPreExecute() {
+        }
+
+        protected void onPostExecute(String result) {
+            Log.i(TAG, result);
+
+            int resultSound;
+            if (result != null && !result.equals("{}")) {
+                try {
+                    JSONObject o = new JSONObject(result);
+                    // play a nice sound
+                    resultSound = Sounds.SUCCESS;
+                    mTaskResult.put("balance", o.getString("balance"));
+                } catch (JSONException je) {
+                    Log.e(TAG, je.getMessage());
+                    // play an error sound
+                    resultSound = Sounds.ERROR;
+                    mTaskResult.put("balance", "(error parsing balance)");
+                }
+            } else {
+                // play an error sound
+                resultSound = Sounds.ERROR;
+                mTaskResult.put("balance", "Error: " + result);
             }
 
             // notify that the card UI must be redrawn

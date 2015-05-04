@@ -50,7 +50,7 @@ public class CardAdapter extends CardScrollAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         CardBuilder card = new CardBuilder(mContext, CardBuilder.Layout.TEXT);
-        card.setText(mTaskResult.get("result"));
+        card.setText("Balance: " + mTaskResult.get("balance") + "\n\n" + mTaskResult.get("result"));
 
         View view = card.getView(convertView, parent);
 
