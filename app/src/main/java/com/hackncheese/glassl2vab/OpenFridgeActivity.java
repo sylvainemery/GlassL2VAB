@@ -47,7 +47,6 @@ public class OpenFridgeActivity extends Activity {
     private String mPassword;
     private String mSalt;
     private String mSaltCrypted;
-    private Hashtable<String, String> mHeaders = new Hashtable<>();
     private SendOpenDoorOrderTask mSendOpenDoorOrderTask;
 
     @Override
@@ -95,14 +94,6 @@ public class OpenFridgeActivity extends Activity {
     }
 
     private void openDoor() {
-        int nonce = Math.abs((new Random(System.currentTimeMillis())).nextInt(9999));
-        String created = DateHelper.getFormattedNow("yyyy-MM-dd'T'HH:mm:ssZ");
-        String digest = EncodeHelper.base64(EncodeHelper.byteToHex(EncodeHelper.sha1((new StringBuilder()).append(nonce).append(created).append(mSaltCrypted).toString())));
-        String securedHeader = (new StringBuilder()).append("UserToken email=\"").append(mEmail).append("\", ").append("nonce=\"").append(nonce).append("\", ").append("created=\"").append(created).append("\", ").append("digest=\"").append(digest).append("\"").toString();
-        Log.i(TAG, securedHeader);
-        mHeaders.clear();
-        mHeaders.put("x-l2v-wsse", securedHeader);
-        mTaskResult.clear();
         mTaskResult.put("result", getString(R.string.fridge_opening));
         // notify that the card UI must be redrawn
         mCardAdapter.notifyDataSetChanged();
@@ -111,13 +102,26 @@ public class OpenFridgeActivity extends Activity {
         mSendOpenDoorOrderTask.execute();
     }
 
+    private String getSecuredHeader(String email, String saltCrypted) {
+        int nonce = Math.abs((new Random(System.currentTimeMillis())).nextInt(9999));
+        String created = DateHelper.getFormattedNow("yyyy-MM-dd'T'HH:mm:ssZ");
+        String digest = EncodeHelper.base64(EncodeHelper.byteToHex(EncodeHelper.sha1((new StringBuilder()).append(nonce).append(created).append(saltCrypted).toString())));
+        String securedHeader = (new StringBuilder()).append("UserToken email=\"").append(email).append("\", ").append("nonce=\"").append(nonce).append("\", ").append("created=\"").append(created).append("\", ").append("digest=\"").append(digest).append("\"").toString();
+
+        Log.i(TAG, securedHeader);
+        return securedHeader;
+    }
+
     /**
      * an AsyncTask that will call the open door API URL
      */
     private class SendOpenDoorOrderTask extends AsyncTask<Void, Void, String> {
         @Override
         protected String doInBackground(Void... p) {
-            return NetHelper.getDataFromUrl(getString(R.string.url_open_door), mHeaders, "PUT");
+            Hashtable<String, String> headers = new Hashtable<>();
+            headers.put("x-l2v-wsse", getSecuredHeader(mEmail, mSaltCrypted));
+
+            return NetHelper.getDataFromUrl(getString(R.string.url_open_door), headers, "PUT");
         }
 
         protected void onPreExecute() {
