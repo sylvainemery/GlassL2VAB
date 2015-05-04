@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.hackncheese.glassl2vab" >
+
+    <!-- to use a custom voice trigger -->
+    <uses-permission android:name="com.google.android.glass.permission.DEVELOPMENT" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/l2vab"
+        android:label="@string/app_name" >
+        <activity
+            android:name=".OpenFridgeActivity"
+            android:icon="@drawable/l2vab"
+            android:label="@string/title_activity_open_fridge" >
+            <intent-filter>
+                <action android:name="com.google.android.glass.action.VOICE_TRIGGER" />
+            </intent-filter>
+
+            <meta-data
+                android:name="com.google.android.glass.VoiceTrigger"
+                android:resource="@xml/voice_trigger" />
+        </activity>
+    </application>
+
+</manifest>

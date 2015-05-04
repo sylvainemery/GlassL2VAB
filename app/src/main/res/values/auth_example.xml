@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Change the values in this file and rename the filename to auth.xml -->
+<resources>
+    <string name="l2vab_login">your@email.com</string>
+    <string name="l2vab_password">your_password</string>
+    <string name="l2vab_salt">the_salt_from_the_session_json_object</string>
+</resources>
