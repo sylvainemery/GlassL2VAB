@@ -9,12 +9,12 @@ repositories {
 
 android {
     compileSdkVersion "Google Inc.:Glass Development Kit Preview:19"
-    buildToolsVersion "22.0.1"
+    buildToolsVersion "23.0.2"
 
     defaultConfig {
         applicationId "com.hackncheese.glassl2vab"
         minSdkVersion 19
-        targetSdkVersion 22
+        targetSdkVersion 19
         versionCode 1
         versionName "1.0"
     }
@@ -33,6 +33,5 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.squareup.okhttp:okhttp:2.3.0'
-    compile 'com.squareup.okio:okio:1.3.0'
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
 }
